@@ -1,0 +1,6 @@
+DEBUG    Using selector: KqueueSelector
+INFO     b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     token
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     token
