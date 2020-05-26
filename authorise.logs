@@ -121,3 +121,140 @@ INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty t
 INFO     sender:b'Enter preferred nickname below:\n'
 INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
 b'Welcome to chat! Post your message below. End it with an empty line.'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+b'Enter preferred nickname below:\n'
+INFO     sender:b'{"nickname": "Trusting 123", "account_hash": "a19f9886-9f7d-11ea-b989-0242ac110002"}\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+b'Enter preferred nickname below:\n'
+INFO     sender:b'{"nickname": "Naughty 123", "account_hash": "10044358-9f7e-11ea-b989-0242ac110002"}\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+b'Welcome to chat! Post your message below. End it with an empty line.\n'
+INFO     sender:b'Message send. Write more, end message with an empty line.\n'
+INFO     sender:b'Message send. Write more, end message with an empty line.\n'
+INFO     sender:b'Message send. Write more, end message with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b''
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+INFO     sender:b'Message send. Write more, end message with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'{"nickname": "Keen dskfj", "account_hash": "3fb53d8c-9f83-11ea-b989-0242ac110002"}\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Enter preferred nickname below:\n'
+DEBUG    Using selector: KqueueSelector
+INFO     sender:b'Hello %username%! Enter your personal hash or leave it empty to create new account.\n'
+INFO     sender:b'Welcome to chat! Post your message below. End it with an empty line.\n'
+INFO     sender:b'Message send. Write more, end message with an empty line.\n'

@@ -8,42 +8,21 @@ logger = logging.getLogger('authorise')
 
 async def authorise(host,port,hash):
     reader, writer = await asyncio.open_connection(
-        host,port
+        host, port
     )
 
     data = await reader.readline()
     logger.info(f'sender:{data}')
 
-    writer.write(hash.encode('utf-8'))
+    writer.write(f'{hash}\n'.encode('utf-8'))
     await writer.drain()
 
     writer.write('\n'.encode())
     await writer.drain()
 
     valid_token = await reader.readline()
-    token_valid = valid_token.decode()
-    if token_valid:
-        print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
-        new_hash = await register(writer,reader)
-        print('new_hasg')
-        writer.close()
-        await writer.wait_closed()
-        reader.close()
+    return valid_token,writer,reader
 
-
-    data1 = await reader.readline()
-    logger.info(f'sender:{data}\n{data1}')
-
-    while True:
-        input_text = input()
-        writer.write(f'{input_text}\n\n'.encode('utf-8'))
-        await writer.drain()
-
-        data = await reader.readline()
-        logger.info(f'sender:{data}')
-
-    writer.close()
-    await writer.wait_closed()
 
 
 async def register(writer,reader):
@@ -51,11 +30,8 @@ async def register(writer,reader):
     logger.info(f'sender:{data}')
     print(data.decode())
 
-    nickname = input()
-    writer.write(nickname.encode('utf-8'))
-    await writer.drain()
-
-    writer.write('\n'.encode('utf-8'))
+    nickname = input().encode("unicode_escape").decode("utf-8")
+    writer.write(f'{nickname}\n'.encode('utf-8'))
     await writer.drain()
 
     data = await reader.readline()
@@ -67,6 +43,29 @@ async def register(writer,reader):
 
     return account_hash
 
+async def submit_message(writer,reader):
+    input_text = input().encode("unicode_escape").decode("utf-8")
+    writer.write(f'{input_text}\n\n'.encode('utf-8'))
+    await writer.drain()
+
+    data = await reader.readline()
+    logger.info(f'sender:{data}')
+
+
+async def main(host,port,hash):
+    valid_token,writer,reader = await authorise(host,port,hash)
+    token_valid = json.loads(valid_token)
+    if not token_valid:
+        print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
+        new_hash = await register(writer,reader)
+        writer.close()
+        await writer.wait_closed()
+
+        _,writer,reader = await authorise(host,port,new_hash)
+
+    print('Type your message:')
+    while True:
+        await submit_message(writer,reader)
 
 
 if __name__=='__main__':
@@ -76,4 +75,4 @@ if __name__=='__main__':
     hash = os.getenv('AUTHORISE_TOKEN')
     logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='authorise.logs',)
 
-    asyncio.run(authorise(host,port,hash))
+    asyncio.run(main(host,port,hash))
