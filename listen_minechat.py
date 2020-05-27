@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 
-async def connetc_chat(port,host,history):
+async def connetc_chat(host,port,history):
 
     reader,writer = await asyncio.open_connection(
         host,port
@@ -20,8 +20,8 @@ async def connetc_chat(port,host,history):
 
 if __name__=='__main__':
     load_dotenv()
-    chat_port = os.getenv('PORT')
-    chat_host = os.getenv('HOST')
+    port = os.getenv('CHAT_PORT')
+    host = os.getenv('CHAT_HOST')
     history = os.getenv('HISTORY')
 
 
@@ -32,5 +32,11 @@ if __name__=='__main__':
     parser.add_argument('--history', help='path to saved chat messages')
     args = parser.parse_args()
 
+    if  args.chat_host:
+        host = args.chat_host
+    if args.chat_port:
+        port = args.chat_port
+    if args.history:
+        history = args.history
 
-    asyncio.run(connetc_chat(chat_port, chat_host, history))
+    asyncio.run(connetc_chat(host, port, history))

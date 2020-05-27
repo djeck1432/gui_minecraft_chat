@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import logging
 import json
+import argparse
 
 logger = logging.getLogger('authorise')
 
@@ -17,7 +18,7 @@ async def authorise(host,port,hash):
     writer.write(f'{hash}\n'.encode('utf-8'))
     await writer.drain()
 
-    writer.write('\n'.encode())
+    writer.write('\n'.encode('utf-8'))
     await writer.drain()
 
     valid_token = await reader.readline()
@@ -52,7 +53,27 @@ async def submit_message(writer,reader):
     logger.info(f'sender:{data}')
 
 
-async def main(host,port,hash):
+async def main():
+    load_dotenv()
+    host = os.getenv('AUTHORISE_HOST')
+    port = os.getenv('AUTHORISE_PORT')
+    hash = os.getenv('AUTHORISE_TOKEN')
+
+    parser = argparse.ArgumentParser(description='Enviroment setting')
+    parser.add_argument('--authorise_host', help='Host')
+    parser.add_argument('--authorise_port', help='Port')
+    parser.add_argument('--hash', help='enter your hash')
+    args = parser.parse_args()
+
+    if  args.authorise_host:
+        host = args.authorise_host
+    if args.chat_port:
+        port = args.authorise_port
+    if args.history:
+        hash = args.hash
+
+    logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='authorise.logs', )
+
     valid_token,writer,reader = await authorise(host,port,hash)
     token_valid = json.loads(valid_token)
     if not token_valid:
@@ -69,10 +90,4 @@ async def main(host,port,hash):
 
 
 if __name__=='__main__':
-    load_dotenv()
-    host = os.getenv('AUTHORISE_HOST')
-    port = os.getenv('AUTHORISE_PORT')
-    hash = os.getenv('AUTHORISE_TOKEN')
-    logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='authorise.logs',)
-
-    asyncio.run(main(host,port,hash))
+    asyncio.run(main())
