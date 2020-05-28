@@ -15,10 +15,10 @@ async def authorise(host,port,hash):
     data = await reader.readline()
     logger.info(f'sender:{data}')
 
-    writer.write(f'{hash}\n'.encode('utf-8'))
+    writer.write(f'{hash}\n'.encode())
     await writer.drain()
 
-    writer.write('\n'.encode('utf-8'))
+    writer.write('\n'.encode())
     await writer.drain()
 
     valid_token = await reader.readline()
@@ -31,8 +31,8 @@ async def register(writer,reader):
     logger.info(f'sender:{data}')
     print(data.decode())
 
-    nickname = input().encode("unicode_escape").decode("utf-8")
-    writer.write(f'{nickname}\n'.encode('utf-8'))
+    nickname = input().encode("unicode_escape").decode()
+    writer.write(f'{nickname}\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
@@ -45,8 +45,8 @@ async def register(writer,reader):
     return account_hash
 
 async def submit_message(writer,reader):
-    input_text = input().encode("unicode_escape").decode("utf-8")
-    writer.write(f'{input_text}\n\n'.encode('utf-8'))
+    input_text = input().encode("unicode_escape").decode()
+    writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
