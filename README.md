@@ -56,10 +56,12 @@ pip3 install -r requirements.txt
 
 `--hash` - ваш ключ авторизации на сервере;
 
+`--log_path` - путь к лог файлам.
+
 # Пример запуска скрипта
 ```bash
-python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path to file]
-```
+python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path to file] --log_path [name].logs
+``` 
  
 
 
