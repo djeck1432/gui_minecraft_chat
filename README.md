@@ -24,19 +24,19 @@ pip3 install -r requirements.txt
 
 ### listen_minechat.py
 
-`HOST` - хост;
+`CHAT_HOST` - хост;
 
-`PORT` - порт;
+`CHAT_PORT` - порт;
 
 `HISTORY` - путь к файлу, где будет сохраняться история чата;
 
 ### authorise.py
 
-`HOST` - хост;
+`AUTHORISE_HOST` - хост;
 
-`PORT` - порт;
+`AUTHORISE_PORT` - порт;
 
-`HASH` - ваш ключ авторизации на сервере;
+`AUTHORISE_TOKEN` - ваш ключ авторизации на сервере;
 
 ## Настройка окружения с помощью 'cli':
 
