@@ -29,7 +29,7 @@ async def register(writer,reader):
     logger.info(f'sender:{data}')
     print(data.decode())
 
-    nickname = input().rstrip('\n')
+    nickname = input().replace('\n','')
     writer.write(f'{nickname}\n'.encode())
     await writer.drain()
 
@@ -43,7 +43,7 @@ async def register(writer,reader):
     return account_hash
 
 async def submit_message(writer,reader):
-    input_text = input().rstrip('\n')
+    input_text = input().replace('\n','')
     writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
 
