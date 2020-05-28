@@ -60,21 +60,14 @@ async def main():
     hash = os.getenv('AUTHORISE_TOKEN')
 
     parser = argparse.ArgumentParser(description='Enviroment setting')
-    parser.add_argument('--authorise_host', help='Host')
-    parser.add_argument('--authorise_port', help='Port')
-    parser.add_argument('--hash', help='enter your hash')
+    parser.add_argument('--authorise_host', help='Host',default=host)
+    parser.add_argument('--authorise_port', help='Port',default=port)
+    parser.add_argument('--hash', help='enter your hash',default=hash)
     args = parser.parse_args()
-
-    if  args.authorise_host:
-        host = args.authorise_host
-    if args.chat_port:
-        port = args.authorise_port
-    if args.history:
-        hash = args.hash
 
     logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='authorise.logs', )
 
-    valid_token,writer,reader = await authorise(host,port,hash)
+    valid_token,writer,reader = await authorise(args.host,args.port,args.hash)
     token_valid = json.loads(valid_token)
     if not token_valid:
         print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')

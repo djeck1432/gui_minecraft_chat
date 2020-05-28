@@ -17,7 +17,7 @@ async def connect_chat(host, port, history):
             async with aiofiles.open(history,mode='a') as chat_messages:
                 data = await reader.readline()
                 message_datetime= datetime.datetime.now().strftime('%d.%m.%y %H:%M')
-                await chat_messages.write(f'[{message_datetime}] {data.decode()}')
+                await chat_messages.write(f'[{message_datetime}] {data.decode("utf-8")}')
         finally:
             writer.close()
 
