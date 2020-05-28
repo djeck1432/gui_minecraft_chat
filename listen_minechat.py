@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 
-async def connetc_chat(host,port,history):
+async def connect_chat(host, port, history):
 
     reader,writer = await asyncio.open_connection(
         host,port
@@ -39,4 +39,4 @@ if __name__=='__main__':
     if args.history:
         history = args.history
 
-    asyncio.run(connetc_chat(host, port, history))
+    asyncio.run(connect_chat(host, port, history))
