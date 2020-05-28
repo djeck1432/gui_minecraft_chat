@@ -31,16 +31,9 @@ if __name__=='__main__':
 
 
     parser = argparse.ArgumentParser(description='Enviroment setting')
-    parser.add_argument('--chat_host',help='Host')
-    parser.add_argument('--chat_port', help='Port')
-    parser.add_argument('--history', help='path to saved chat messages')
+    parser.add_argument('--chat_host',help='Host',default=host)
+    parser.add_argument('--chat_port', help='Port',default=port)
+    parser.add_argument('--history', help='path to saved chat messages',default=history)
     args = parser.parse_args()
 
-    if  args.chat_host:
-        host = args.chat_host
-    if args.chat_port:
-        port = args.chat_port
-    if args.history:
-        history = args.history
-
-    asyncio.run(connect_chat(host, port, history))
+    asyncio.run(connect_chat(args.host, args.port, args.history))

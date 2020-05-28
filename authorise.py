@@ -63,9 +63,10 @@ async def main():
     parser.add_argument('--authorise_host', help='Host',default=host)
     parser.add_argument('--authorise_port', help='Port',default=port)
     parser.add_argument('--hash', help='enter your hash',default=hash)
+    parser.add_argument('--log_path', help='enter path to log file', default='authorise.logs' )
     args = parser.parse_args()
 
-    logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='authorise.logs', )
+    logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename=args.log_path, )
 
     valid_token,writer,reader = await authorise(args.host,args.port,args.hash)
     token_valid = json.loads(valid_token)
