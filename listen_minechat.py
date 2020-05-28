@@ -36,4 +36,4 @@ if __name__=='__main__':
     parser.add_argument('--history', help='path to saved chat messages',default=history)
     args = parser.parse_args()
 
-    asyncio.run(connect_chat(args.host, args.port, args.history))
+    asyncio.run(connect_chat(args.chat_host, args.chat_port, args.history))

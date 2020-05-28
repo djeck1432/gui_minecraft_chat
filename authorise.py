@@ -7,22 +7,20 @@ import argparse
 
 logger = logging.getLogger('authorise')
 
-async def authorise(host,port,hash):
-    reader, writer = await asyncio.open_connection(
-        host, port
-    )
-
+async def authorise(writer,reader,hash):
     data = await reader.readline()
     logger.info(f'sender:{data}')
 
-    writer.write(f'{hash}\n'.encode('utf-8'))
+    writer.write(f'{hash}\n'.encode())
     await writer.drain()
 
-    writer.write('\n'.encode('utf-8'))
+    writer.write('\n'.encode())
     await writer.drain()
 
     valid_token = await reader.readline()
-    return valid_token,writer,reader
+    token_valid = json.loads(valid_token)
+
+    return token_valid,writer,reader
 
 
 
@@ -31,8 +29,8 @@ async def register(writer,reader):
     logger.info(f'sender:{data}')
     print(data.decode())
 
-    nickname = input().encode("unicode_escape").decode("utf-8")
-    writer.write(f'{nickname}\n'.encode('utf-8'))
+    nickname = input().rstrip('\n')
+    writer.write(f'{nickname}\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
@@ -45,8 +43,8 @@ async def register(writer,reader):
     return account_hash
 
 async def submit_message(writer,reader):
-    input_text = input().encode("unicode_escape").decode("utf-8")
-    writer.write(f'{input_text}\n\n'.encode('utf-8'))
+    input_text = input().rstrip('\n')
+    writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
@@ -67,20 +65,23 @@ async def main():
     args = parser.parse_args()
 
     logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename=args.log_path, )
+    reader, writer = await asyncio.open_connection(
+        args.authorise_host, args.authorise_port
+    )
 
-    valid_token,writer,reader = await authorise(args.host,args.port,args.hash)
-    token_valid = json.loads(valid_token)
+    token_valid,writer,reader = await authorise(writer,reader,args.hash)
     if not token_valid:
         print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
         new_hash = await register(writer,reader)
         writer.close()
         await writer.wait_closed()
 
-        _,writer,reader = await authorise(host,port,new_hash)
+        _,writer,reader = await authorise(writer,reader,new_hash)
 
     print('Type your message:')
     while True:
         await submit_message(writer,reader)
+
 
 
 if __name__=='__main__':
