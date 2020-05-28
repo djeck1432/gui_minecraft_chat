@@ -29,11 +29,7 @@ async def register(writer,reader):
     logger.info(f'sender:{data}')
     print(data.decode())
 
-<<<<<<< HEAD
     nickname = input().rstrip('\n')
-=======
-    nickname = input().encode("unicode_escape").decode()
->>>>>>> b2ed4628ccad35c463a2ca12a6e8dfa1d1f29fd0
     writer.write(f'{nickname}\n'.encode())
     await writer.drain()
 
@@ -47,11 +43,7 @@ async def register(writer,reader):
     return account_hash
 
 async def submit_message(writer,reader):
-<<<<<<< HEAD
     input_text = input().rstrip('\n')
-=======
-    input_text = input().encode("unicode_escape").decode()
->>>>>>> b2ed4628ccad35c463a2ca12a6e8dfa1d1f29fd0
     writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
 
