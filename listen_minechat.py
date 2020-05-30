@@ -11,15 +11,14 @@ async def connect_chat(host, port, history):
     reader,writer = await asyncio.open_connection(
         host,port
     )
-
-    while True:
-        try:
+    try:
+        while True:
             async with aiofiles.open(history,mode='a') as chat_messages:
                 data = await reader.readline()
                 message_datetime= datetime.datetime.now().strftime('%d.%m.%y %H:%M')
                 await chat_messages.write(f'[{message_datetime}] {data.decode("utf-8")}')
-        finally:
-            writer.close()
+    finally:
+        writer.close()
 
 
 if __name__=='__main__':
