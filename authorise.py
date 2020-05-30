@@ -88,7 +88,6 @@ async def main():
     async with get_connection(args.authorise_host, args.authorise_port) as connection:
         await authorise(connection,new_hash)
         while True:
-
             input_text = input('Type your message: ').replace('\n', '')
             await submit_message(connection, input_text)
 
