@@ -82,15 +82,14 @@ async def main():
             nickname = input('Enter your nickname')
             new_hash = await register(connection, nickname)
         while True:
-            print('Type your message:')
-            input_text = input().replace('\n', '')
+            input_text = input('Type your message: ').replace('\n', '')
             await submit_message(connection,input_text)
 
     async with get_connection(args.authorise_host, args.authorise_port) as connection:
         await authorise(connection,new_hash)
         while True:
-            print('Type your message:')
-            input_text = input().replace('\n', '')
+
+            input_text = input('Type your message: ').replace('\n', '')
             await submit_message(connection, input_text)
 
 
