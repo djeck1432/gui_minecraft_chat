@@ -82,14 +82,14 @@ async def main():
             print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
             nickname = input('Enter your nickname')
             new_hash = await register(connection, nickname)
-        print('Type your message:')
         while True:
+            print('Type your message:')
             await submit_message(connection)
 
     async with get_connection(args.authorise_host, args.authorise_port) as connection:
         await authorise(connection,new_hash)
-        print('Type your message:')
         while True:
+            print('Type your message:')
             await submit_message(connection)
 
 
