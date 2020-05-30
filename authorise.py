@@ -43,7 +43,8 @@ async def register(connection,nickname):
 
 async def submit_message(connection,input_text):
     writer,reader = connection
-    writer.write(f'{input_text}\n\n'.encode())
+    cleared_input_text = input_text.replace('\n', '')
+    writer.write(f'{cleared_input_text}\n\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
@@ -79,16 +80,16 @@ async def main():
         token_valid= await authorise(connection, args.hash)
         if not token_valid:
             print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
-            nickname = input('Enter your nickname')
+            nickname = input('Enter your nickname: ')
             new_hash = await register(connection, nickname)
         while True:
-            input_text = input('Type your message: ').replace('\n', '')
+            input_text = input('Type your message: ')
             await submit_message(connection,input_text)
 
     async with get_connection(args.authorise_host, args.authorise_port) as connection:
         await authorise(connection,new_hash)
         while True:
-            input_text = input('Type your message: ').replace('\n', '')
+            input_text = input('Type your message: ')
             await submit_message(connection, input_text)
 
 
