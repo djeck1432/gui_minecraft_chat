@@ -41,9 +41,8 @@ async def register(connection,nickname):
 
     return account_hash
 
-async def submit_message(connection):
+async def submit_message(connection,input_text):
     writer,reader = connection
-    input_text = input().replace('\n','')
     writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
 
@@ -84,13 +83,15 @@ async def main():
             new_hash = await register(connection, nickname)
         while True:
             print('Type your message:')
-            await submit_message(connection)
+            input_text = input().replace('\n', '')
+            await submit_message(connection,input_text)
 
     async with get_connection(args.authorise_host, args.authorise_port) as connection:
         await authorise(connection,new_hash)
         while True:
             print('Type your message:')
-            await submit_message(connection)
+            input_text = input().replace('\n', '')
+            await submit_message(connection, input_text)
 
 
 
