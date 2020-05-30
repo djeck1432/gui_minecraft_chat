@@ -1,13 +1,15 @@
 import asyncio
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 import logging
 import json
 import argparse
 
 logger = logging.getLogger('authorise')
 
-async def authorise(writer,reader,hash):
+async def authorise(connection,hash):
+    writer,reader = connection
     data = await reader.readline()
     logger.info(f'sender:{data}')
 
@@ -20,29 +22,27 @@ async def authorise(writer,reader,hash):
     valid_token = await reader.readline()
     token_valid = json.loads(valid_token)
 
-    return token_valid,writer,reader
+    return token_valid
 
 
 
-async def register(writer,reader):
+async def register(connection,nickname):
+    writer,reader = connection
     data = await reader.readline()
     logger.info(f'sender:{data}')
-    print(data.decode())
 
-    nickname = input().replace('\n','')
-    writer.write(f'{nickname}\n'.encode())
+    cleaned_nickname = nickname.replace("\n", "")
+    writer.write(f'{cleaned_nickname}\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
     account_data = json.loads(data)
     account_hash = account_data['account_hash']
 
-    writer.close()
-    await writer.wait_closed()
-
     return account_hash
 
-async def submit_message(writer,reader):
+async def submit_message(connection):
+    writer,reader = connection
     input_text = input().replace('\n','')
     writer.write(f'{input_text}\n\n'.encode())
     await writer.drain()
@@ -50,6 +50,16 @@ async def submit_message(writer,reader):
     data = await reader.readline()
     logger.info(f'sender:{data}')
 
+@asynccontextmanager
+async def get_connection(authorise_host,authorise_port):
+    reader, writer = await asyncio.open_connection(
+        authorise_host,authorise_port
+    )
+    try:
+        yield writer,reader
+    finally:
+        writer.close()
+        await writer.wait_closed()
 
 async def main():
     load_dotenv()
@@ -65,25 +75,22 @@ async def main():
     args = parser.parse_args()
 
     logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename=args.log_path, )
-    reader, writer = await asyncio.open_connection(
-        args.authorise_host, args.authorise_port
-    )
 
-    token_valid,writer,reader = await authorise(writer,reader,args.hash)
-    if not token_valid:
-        print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
-        new_hash = await register(writer,reader)
-        writer.close()
-        await writer.wait_closed()
-
-        _,writer,reader = await authorise(writer,reader,new_hash)
-
-    print('Type your message:')
-    try:
+    async with get_connection(args.authorise_host, args.authorise_port) as connection:
+        token_valid= await authorise(connection, args.hash)
+        if not token_valid:
+            print('Неизвестный токен. Проверьте его или зарегистрируйте заново.')
+            nickname = input('Enter your nickname')
+            new_hash = await register(connection, nickname)
+        print('Type your message:')
         while True:
-            await submit_message(writer,reader)
-    finally:
-        writer.close()
+            await submit_message(connection)
+
+    async with get_connection(args.authorise_host, args.authorise_port) as connection:
+        await authorise(connection,new_hash)
+        print('Type your message:')
+        while True:
+            await submit_message(connection)
 
 
 
