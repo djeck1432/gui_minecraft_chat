@@ -79,8 +79,11 @@ async def main():
         _,writer,reader = await authorise(writer,reader,new_hash)
 
     print('Type your message:')
-    while True:
-        await submit_message(writer,reader)
+    try:
+        while True:
+            await submit_message(writer,reader)
+    finally:
+        writer.close()
 
 
 
