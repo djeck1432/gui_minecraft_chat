@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import datetime,time
 from async_timeout import timeout
+from anyio import sleep, create_task_group, run
 
 
 authorise_logger = logging.getLogger('authorise')
@@ -136,14 +137,21 @@ async def main():
 
 
     try:
-        await asyncio.gather(
-            authorise(watchdog_queue,args.authorise_host, args.authorise_port, args.hash,status_updates_queue),
-            read_msgs(args.chat_host,args.chat_port,messages_queue,status_updates_queue,watchdog_queue),
-            saved_messages(history, messages_queue),
-            send_msgs(args.authorise_host,args.authorise_port,sending_queue,watchdog_queue),
-            watch_for_connection(watchdog_queue),
-            gui.draw(messages_queue, sending_queue, status_updates_queue),
-        )
+        async with create_task_group() as minechat:
+            await minechat.spawn(authorise,*[watchdog_queue,args.authorise_host, args.authorise_port, args.hash,status_updates_queue]),
+            await minechat.spawn(read_msgs,*[args.chat_host,args.chat_port,messages_queue,status_updates_queue,watchdog_queue]),
+            await minechat.spawn(saved_messages,*[history, messages_queue]),
+            await minechat.spawn(send_msgs,*[args.authorise_host,args.authorise_port,sending_queue,watchdog_queue]),
+            await minechat.spawn(watch_for_connection,watchdog_queue)
+            await minechat.spawn(gui.draw,*[messages_queue, sending_queue, status_updates_queue]),
+        # await asyncio.gather(
+        #     authorise(watchdog_queue,args.authorise_host, args.authorise_port, args.hash,status_updates_queue),
+        #     read_msgs(args.chat_host,args.chat_port,messages_queue,status_updates_queue,watchdog_queue),
+        #     saved_messages(history, messages_queue),
+        #     send_msgs(args.authorise_host,args.authorise_port,sending_queue,watchdog_queue),
+        #     watch_for_connection(watchdog_queue),
+        #     gui.draw(messages_queue, sending_queue, status_updates_queue),
+        # )
     except BaseException as exc:
         print(f'main: {type(exc)}')
         raise
@@ -151,5 +159,5 @@ async def main():
 
 
 if __name__=='__main__':
-    asyncio.run(main())
+    run(main)
 
