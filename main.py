@@ -8,7 +8,7 @@ import argparse
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import datetime,time
-import async_timeout
+from async_timeout import timeout
 
 
 authorise_logger = logging.getLogger('authorise')
@@ -93,11 +93,15 @@ async def send_msgs(host,port,queue,watchdog_queue):
 
 async def watch_for_connection(queue):
     while True:
-        info_log = await queue.get()
-        print(f'[{time.time()}] {info_log}')
-        async with timeout(1.5):
-            await inner()
+        try:
+            async with timeout(1.5) as cm:
+                info_log = await queue.get()
+                print(f'[{time.time()}] {info_log}')
+        except:
+            print(f'[{time.time()}] 1s timeout is elapsed')
 
+async def handle_connection():
+    pass
 
 async def main():
     load_dotenv()
