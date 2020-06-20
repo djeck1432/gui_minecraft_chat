@@ -1,10 +1,13 @@
-from tkinter import *
+import tkinter as tk
 import asyncio
 from dotenv import load_dotenv
 import os
 from contextlib import asynccontextmanager
 from anyio import create_task_group, run
 import json
+
+class TkAppClosed(Exception):
+    pass
 
 
 @asynccontextmanager
@@ -19,18 +22,25 @@ async def get_connection(authorise_host,authorise_port):
         await writer.wait_closed()
 
 
+
 async def create_token(reader,writer,text_queue):
-    print('create_token')
     data = await reader.readline()
     nickname = await text_queue.get()
-    print(f'nickname : {nickname}')
-    writer.write(nickname.encode())
+
+    writer.write('\n'.encode())
+    await writer.drain()
+
+    data = await reader.readline()
+
+    writer.write(f'{nickname}\n'.encode())
     await writer.drain()
 
     data = await reader.readline()
     account_data = json.loads(data)
     account_hash = account_data['account_hash']
-    print(account_hash)
+    account_nickname = account_data['nickname']
+    with open('account_data.txt', 'w') as account:
+        account.write(f'nickname: {account_nickname}\nhash: {account_hash}')
 
 
 def clicked(root,txt,text_queue):
@@ -38,31 +48,37 @@ def clicked(root,txt,text_queue):
     if input_text:
         text_queue.put_nowait(input_text)
         print(f'input_text:{input_text}')
-        nickname_label = Label(root,text=f'Ваш никнейм: {input_text}')
+        nickname_label = tk.Label(root,text=f'Ваш никнейм: {input_text}')
         nickname_label.pack()
     else:
-        warning_label = Label(root,text=f'Вы ничего не ввели, попробуйте еще раз')
+        warning_label = tk.Label(root,text=f'Вы ничего не ввели, попробуйте еще раз')
         warning_label.pack()
 
 
+async def update_tk(root_frame, interval=1 / 120):
+    while True:
+        try:
+            root_frame.update()
+        except tk.TclError:
+            # if application has been destroyed/closed
+            raise TkAppClosed()
+        await asyncio.sleep(interval)
 
-async def enter_nickname(root,text_queue):
-    print('draw')
-    lbl = Label(root, height=2, text='response')
-    txt = Entry(root, width=20)
-    btn = Button(root, text="Введите nickname", command=lambda: clicked(root, txt, text_queue))
+
+async def draw(text_queue):
+    root = tk.Tk()
+    root.title('Регистрация')
+    root.geometry('350x150')
+
+    lbl = tk.Label(root, height=2, text='Введите свой никнейм')
+    txt = tk.Entry(root, width=15)
+    btn = tk.Button(root,fg='red', text="создать аккаунт", command=lambda: clicked(root, txt, text_queue))
+
     lbl.pack()
     txt.pack()
     btn.pack()
 
-
-async def draw(text_queue):
-    root = Tk()
-    root.title('Введите свой никнейм')
-    root.geometry('600x350')
-    async with create_task_group() as regist:
-        await regist.spawn(enter_nickname,*[root,text_queue]),
-        # root.mainloop()
+    await update_tk(root)
 
 
 
@@ -78,8 +94,6 @@ async def main():
         async with create_task_group() as regist:
             await regist.spawn(create_token, *[reader, writer, text_queue]),
             await regist.spawn(draw,text_queue),
-
-
 
 
 if __name__=='__main__':
