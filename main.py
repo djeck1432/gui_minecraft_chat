@@ -1,3 +1,5 @@
+import socket
+
 import aiofiles
 import logging
 import gui
@@ -10,10 +12,41 @@ from dotenv import load_dotenv
 import datetime,time
 from async_timeout import timeout
 from anyio import sleep, create_task_group, run
+import tkinter
 
 
 authorise_logger = logging.getLogger('authorise')
 watchdog_logger = logging.getLogger('watchdog_logger')
+
+# async def check_conection(chat_host,chat_port):
+#
+#     async with get_connection(chat_host,chat_port) as valid_connection:
+#         reader, writer = valid_connection
+#         while True:
+#             try:
+#                 async with timeout(4) as response_delay:
+#                         writer.write(''.encode())
+#                         await writer.drain()
+#                         empty_response = await reader.read()
+#             except ConnectionError:
+#                 raise
+
+
+
+
+def reconnect(func): #FIXME
+
+    async def wrappers(*args, **kwargs):
+        chat_host,chat_port, *_ = args
+        while True:
+            # try:
+                await func(*args)
+                print('reconnect')
+            # except asyncio.TimeoutError:
+                await asyncio.sleep(1)
+
+    return wrappers
+
 
 @asynccontextmanager
 async def get_connection(chat_host,chat_port):
@@ -21,43 +54,44 @@ async def get_connection(chat_host,chat_port):
         chat_host,chat_port
     )
     try:
-        yield writer,reader
+        yield reader, writer
     finally:
         writer.close()
         await writer.wait_closed()
 
 
-async def authorise(watchdog_queue,host,port,hash,queue):
-    queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
-    await watchdog_queue.put('Prompt before auth')
-    async with get_connection(host,port) as connection:
-        writer, reader = connection
-        data = await reader.readline()
-        authorise_logger.info(f'sender:{data}')
-        writer.write(f'{hash}\n'.encode())
-        await writer.drain()
+async def authorise(reader, writer, hash,
+                    watchdog_queue, status_updates_queue):
+    status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
+    watchdog_queue.put_nowait('Prompt before auth')
 
-        writer.write('\n'.encode())
-        await writer.drain()
-        response = await reader.readline()
-        token_valid = json.loads(response)
-        if token_valid:
-            nickname = json.loads(response)['nickname']
-            print(f'Выполнена авторизация. Пользователь {nickname}.')
-            nickname_received = gui.NicknameReceived(nickname)
-            queue.put_nowait(nickname_received)
-            queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
-            await watchdog_queue.put('Authorization done')
-        else:
-            queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-            raise gui.InvalidToken
+    data = await reader.readline()
+    authorise_logger.info(f'sender:{data}')
+    writer.write(f'{hash}\n'.encode())
+    await writer.drain()
+
+    writer.write('\n'.encode())
+    await writer.drain()
+    response = await reader.readline()
+    token_valid = json.loads(response)
+    if token_valid:
+        nickname = json.loads(response)['nickname']
+        print(f'Выполнена авторизация. Пользователь {nickname}.')
+        nickname_received = gui.NicknameReceived(nickname)
+        status_updates_queue.put_nowait(nickname_received)
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+        watchdog_queue.put_nowait('Authorization done')
+    else:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+        raise gui.InvalidToken
 
 
-async def read_msgs(chat_host, chat_port, messages_queue,status_updates_queue,watchdog_queue):
+async def read_msgs(chat_host, chat_port, messages_queue,
+                    status_updates_queue, watchdog_queue):
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     try:
         async with get_connection(chat_host, chat_port) as connection:
-            writer, reader = connection
+            reader, writer = connection
             status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
             while True:
                 async with aiofiles.open('chat_messages.txt', mode='a') as chat_messages:
@@ -66,43 +100,67 @@ async def read_msgs(chat_host, chat_port, messages_queue,status_updates_queue,wa
                     message_text = f'[{message_datetime}] {data.decode("utf-8")}'
                     messages_queue.put_nowait(message_text)
                     await chat_messages.write(message_text)
-                    await watchdog_queue.put('New message in chat')
-    except BaseException as exc:
+                    watchdog_queue.put_nowait('New message in chat')
+    except BaseException:
         status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
-        print(f'read_msgs: {exc}')
         raise
 
-async def saved_messages(filepath,queue):
+
+async def save_messages(filepath,queue):
     while True:
         async with aiofiles.open(filepath,mode='r') as chat_messages:
             message_text = await chat_messages.read()
             queue.put_nowait(message_text)
 
 
-async def send_msgs(host,port,queue,watchdog_queue):
-    async with get_connection(host,port) as connection:
-        writer,reader = connection
+async def send_msgs(authorise_host, authorise_port, hash,
+                    sending_queue, watchdog_queue, status_updates_queue):
+    async with get_connection(authorise_host,authorise_port) as connection:
+        reader, writer = connection
+        await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
         while True:
-            input_text = await queue.get()
+            input_text = await sending_queue.get()
             watchdog_queue.put_nowait('Message sent')
             cleared_input_text = input_text.replace('\n', '')
             writer.write(f'{cleared_input_text}\n\n'.encode())
             await writer.drain()
 
-            data = await reader.readline()
-            #authorise_logger.info(f'sender:{data}')
+            await reader.readline()
 
-async def watch_for_connection(queue):
-    while True:
-        try:
-            async with timeout(1.5) as cm:
+
+async def watch_for_connection(queue,status_updates_queue):
+    try:
+        while True:
+            async with timeout(5) as cm:
                 info_log = await queue.get()
                 print(f'[{time.time()}] {info_log}')
-        except:
-            print(f'[{time.time()}] 1s timeout is elapsed')
+            if cm.expired:
+                status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
+                print(f'[{time.time()}] 1s timeout is elapsed')
+    except ConnectionError:
+        raise
 
-async def handle_connection():
-    pass
+
+@reconnect
+async def handle_connection(chat_host,chat_port,
+                            messages_queue, sending_queue, status_updates_queue,
+                            authorise_host, authorise_port, hash,
+                            ):
+
+    watchdog_queue = asyncio.Queue()
+    try:
+        async with create_task_group() as minechat:
+            await minechat.spawn(read_msgs,
+                                 *[chat_host, chat_port, messages_queue,
+                                   status_updates_queue, watchdog_queue]),
+            await minechat.spawn(send_msgs, *[authorise_host,authorise_port,hash,
+                                              sending_queue, watchdog_queue, status_updates_queue]),
+            await minechat.spawn(watch_for_connection, *[watchdog_queue,status_updates_queue]),
+            #await minechat.spawn(check_conection,*[chat_host,chat_port]),
+
+    except (asyncio.TimeoutError,socket.gaierror):
+         print('start reconnect')
+
 
 async def main():
     load_dotenv()
@@ -125,39 +183,23 @@ async def main():
     parser.add_argument('--log_path', help='enter path to log file', default='authorise.logs')
     args = parser.parse_args()
 
-    # authorise_logger.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename=args.log_path,)
     logging.basicConfig(format=u'%(levelname)-8s %(message)s', level=1, filename='watchdog_log.logs',)
 
     messages_queue = asyncio.Queue()
     sending_queue = asyncio.Queue()
     status_updates_queue = asyncio.Queue()
-    watchdog_queue = asyncio.Queue()
 
-    # await watchdog_queue.put(await messages_queue.get())
-
-
-    try:
-        async with create_task_group() as minechat:
-            await minechat.spawn(authorise,*[watchdog_queue,args.authorise_host, args.authorise_port, args.hash,status_updates_queue]),
-            await minechat.spawn(read_msgs,*[args.chat_host,args.chat_port,messages_queue,status_updates_queue,watchdog_queue]),
-            await minechat.spawn(saved_messages,*[history, messages_queue]),
-            await minechat.spawn(send_msgs,*[args.authorise_host,args.authorise_port,sending_queue,watchdog_queue]),
-            await minechat.spawn(watch_for_connection,watchdog_queue)
-            await minechat.spawn(gui.draw,*[messages_queue, sending_queue, status_updates_queue]),
-        # await asyncio.gather(
-        #     authorise(watchdog_queue,args.authorise_host, args.authorise_port, args.hash,status_updates_queue),
-        #     read_msgs(args.chat_host,args.chat_port,messages_queue,status_updates_queue,watchdog_queue),
-        #     saved_messages(history, messages_queue),
-        #     send_msgs(args.authorise_host,args.authorise_port,sending_queue,watchdog_queue),
-        #     watch_for_connection(watchdog_queue),
-        #     gui.draw(messages_queue, sending_queue, status_updates_queue),
-        # )
-    except BaseException as exc:
-        print(f'main: {type(exc)}')
-        raise
-
+    async with create_task_group() as chat:
+        await chat.spawn(handle_connection,*[args.chat_host,args.chat_port,
+                                             messages_queue, sending_queue, status_updates_queue,
+                                            args.authorise_host, args.authorise_port, args.hash,])
+        await chat.spawn(save_messages, *[args.history, messages_queue])
+        await chat.spawn(gui.draw, *[messages_queue,sending_queue,status_updates_queue])
 
 
 if __name__=='__main__':
-    run(main)
+    try:
+        run(main)
+    except (KeyboardInterrupt,tkinter.TclError):
+        print('exit')
 

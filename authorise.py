@@ -25,7 +25,6 @@ async def authorise(connection,hash):
     return token_valid
 
 
-
 async def register(connection,nickname):
     writer,reader = connection
     data = await reader.readline()

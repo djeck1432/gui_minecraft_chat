@@ -6,3 +6,6 @@
 *.env
 *chat_messages
 *.logs
+*authorise.py
+*listen_minechat.py
+*.txt
