@@ -63,6 +63,15 @@ pip3 install -r requirements.txt
 python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path to file] --log_path [name].logs
 ``` 
  
+# Как создать новый акк
+
+В консоли, откройте следующий файл: 
+```bash 
+python3 registration.py
+```
+Введите свой nickname  и нажмите кнопку `создать аккаунт`.
+
+После, у вас появиться файл `account_data.txt`, где будет указан ваш `nickname` и `hash`.
 
 
 
