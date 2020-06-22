@@ -18,33 +18,16 @@ import tkinter
 authorise_logger = logging.getLogger('authorise')
 watchdog_logger = logging.getLogger('watchdog_logger')
 
-# async def check_conection(chat_host,chat_port):
-#
-#     async with get_connection(chat_host,chat_port) as valid_connection:
-#         reader, writer = valid_connection
-#         while True:
-#             try:
-#                 async with timeout(4) as response_delay:
-#                         writer.write(''.encode())
-#                         await writer.drain()
-#                         empty_response = await reader.read()
-#             except ConnectionError:
-#                 raise
 
-
-
-
-def reconnect(func): #FIXME
+def reconnect(func):
 
     async def wrappers(*args, **kwargs):
         chat_host,chat_port, *_ = args
         while True:
-            # try:
                 await func(*args)
                 print('reconnect')
-            # except asyncio.TimeoutError:
-                await asyncio.sleep(1)
 
+                await asyncio.sleep(1)
     return wrappers
 
 
@@ -156,7 +139,6 @@ async def handle_connection(chat_host,chat_port,
             await minechat.spawn(send_msgs, *[authorise_host,authorise_port,hash,
                                               sending_queue, watchdog_queue, status_updates_queue]),
             await minechat.spawn(watch_for_connection, *[watchdog_queue,status_updates_queue]),
-            #await minechat.spawn(check_conection,*[chat_host,chat_port]),
 
     except (asyncio.TimeoutError,socket.gaierror):
          print('start reconnect')
