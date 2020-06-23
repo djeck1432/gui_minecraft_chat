@@ -38,7 +38,7 @@ pip3 install -r requirements.txt
 
 `AUTHORISE_TOKEN` - ваш ключ авторизации на сервере;
 
-## Настройка окружения с помощью 'cli':
+## Настройка окружения с помощью `cli`:
 
 ### listen_minechat.py
 
@@ -69,7 +69,7 @@ python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path
 ```bash 
 python3 registration.py
 ```
-Введите свой nickname  и нажмите кнопку `создать аккаунт`.
+Введите свой nickname  и нажмите кнопку <i>создать аккаунт<i>.
 
 После, у вас появиться файл `account_data.txt`, где будет указан ваш `nickname` и `hash`.
 
