@@ -7,11 +7,11 @@ import asyncio
 import json
 import os
 import argparse
-from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import datetime,time
 from async_timeout import timeout
-from anyio import sleep, create_task_group, run
+from anyio import create_task_group, run
+from connection import get_connection
 import tkinter
 
 
@@ -19,28 +19,14 @@ authorise_logger = logging.getLogger('authorise')
 watchdog_logger = logging.getLogger('watchdog_logger')
 
 
-def reconnect(func):
-
+def restart_func(func):
     async def wrappers(*args, **kwargs):
-        chat_host,chat_port, *_ = args
         while True:
                 await func(*args)
                 print('reconnect')
 
                 await asyncio.sleep(1)
     return wrappers
-
-
-@asynccontextmanager
-async def get_connection(chat_host,chat_port):
-    reader, writer = await asyncio.open_connection(
-        chat_host,chat_port
-    )
-    try:
-        yield reader, writer
-    finally:
-        writer.close()
-        await writer.wait_closed()
 
 
 async def authorise(reader, writer, hash,
@@ -124,7 +110,7 @@ async def watch_for_connection(queue,status_updates_queue):
         raise
 
 
-@reconnect
+@restart_func
 async def handle_connection(chat_host,chat_port,
                             messages_queue, sending_queue, status_updates_queue,
                             authorise_host, authorise_port, hash,
@@ -184,4 +170,5 @@ if __name__=='__main__':
         run(main)
     except (KeyboardInterrupt,tkinter.TclError):
         print('exit')
+
 
