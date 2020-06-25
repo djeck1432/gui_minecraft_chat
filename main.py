@@ -21,11 +21,13 @@ watchdog_logger = logging.getLogger('watchdog_logger')
 
 def restart_func(func):
     async def wrappers(*args, **kwargs):
-        while True:
-                await func(*args)
-                print('reconnect')
 
-                await asyncio.sleep(1)
+        while True:
+            try:
+                await func(*args,**kwargs)
+            except (asyncio.TimeoutError,socket.gaierror):
+                print('start reconnect')
+            await asyncio.sleep(1)
     return wrappers
 
 
@@ -117,17 +119,14 @@ async def handle_connection(chat_host,chat_port,
                             ):
 
     watchdog_queue = asyncio.Queue()
-    try:
-        async with create_task_group() as minechat:
-            await minechat.spawn(read_msgs,
-                                 *[chat_host, chat_port, messages_queue,
-                                   status_updates_queue, watchdog_queue]),
-            await minechat.spawn(send_msgs, *[authorise_host,authorise_port,hash,
-                                              sending_queue, watchdog_queue, status_updates_queue]),
-            await minechat.spawn(watch_for_connection, *[watchdog_queue,status_updates_queue]),
 
-    except (asyncio.TimeoutError,socket.gaierror):
-         print('start reconnect')
+    async with create_task_group() as connection_tg:
+        await connection_tg.spawn(read_msgs,
+                             *[chat_host, chat_port, messages_queue,
+                               status_updates_queue, watchdog_queue]),
+        await connection_tg.spawn(send_msgs, *[authorise_host,authorise_port,hash,
+                                          sending_queue, watchdog_queue, status_updates_queue]),
+        await connection_tg.spawn(watch_for_connection, *[watchdog_queue,status_updates_queue]),
 
 
 async def main():
@@ -141,12 +140,12 @@ async def main():
     parser.add_argument('--chat_port', help='Port', default=chat_port)
     parser.add_argument('--history', help='path to saved chat messages', default=history)
 
-    authorise_host = os.getenv('AUTHORISE_HOST')
-    authorise_port = os.getenv('AUTHORISE_PORT')
+    authorization_host = os.getenv('AUTHORIZATION_HOST')
+    authorization_port = os.getenv('AUTHORIZATION_PORT')
     hash = os.getenv('AUTHORISE_TOKEN')
 
-    parser.add_argument('--authorise_host', help='Host', default=authorise_host)
-    parser.add_argument('--authorise_port', help='Port', default=authorise_port)
+    parser.add_argument('--authorise_host', help='Host', default=authorization_host)
+    parser.add_argument('--authorise_port', help='Port', default=authorization_port)
     parser.add_argument('--hash', help='enter your hash', default=hash)
     parser.add_argument('--log_path', help='enter path to log file', default='authorise.logs')
     args = parser.parse_args()
@@ -157,12 +156,12 @@ async def main():
     sending_queue = asyncio.Queue()
     status_updates_queue = asyncio.Queue()
 
-    async with create_task_group() as chat:
-        await chat.spawn(handle_connection,*[args.chat_host,args.chat_port,
+    async with create_task_group() as chat_tg:
+        await chat_tg.spawn(handle_connection,args.chat_host,args.chat_port,
                                              messages_queue, sending_queue, status_updates_queue,
-                                            args.authorise_host, args.authorise_port, args.hash,])
-        await chat.spawn(save_messages, *[args.history, messages_queue])
-        await chat.spawn(gui.draw, *[messages_queue,sending_queue,status_updates_queue])
+                                            args.authorise_host, args.authorise_port, args.hash,)
+        await chat_tg.spawn(save_messages,args.history, messages_queue)
+        await chat_tg.spawn(gui.draw, messages_queue,sending_queue,status_updates_queue)
 
 
 if __name__=='__main__':
@@ -170,5 +169,4 @@ if __name__=='__main__':
         run(main)
     except (KeyboardInterrupt,tkinter.TclError):
         print('exit')
-
 
