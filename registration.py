@@ -26,15 +26,14 @@ async def create_token(reader,writer,text_queue):
     account_data = json.loads(data)
     account_hash = account_data['account_hash']
     account_nickname = account_data['nickname']
-    with open('account_data.txt', 'w') as credentials:
-        credentials.write(f'nickname: {account_nickname}\nhash: {account_hash}')
+    with open('account_data.txt', 'w') as credentials_file:
+        credentials_file.write(f'nickname: {account_nickname}\nhash: {account_hash}')
 
 
 def clicked(root,txt,text_queue):
     inputed_text = txt.get()
     if inputed_text:
         text_queue.put_nowait(inputed_text)
-        print(f'inputed_text:{inputed_text}')
         nickname_label = tk.Label(root,text=f'Ваш никнейм: {inputed_text}')
         nickname_label.pack()
     else:
@@ -58,11 +57,11 @@ async def draw(text_queue):
     root.geometry('350x150')
 
     lbl = tk.Label(root, height=2, text='Введите свой никнейм')
-    entries_text = tk.Entry(root, width=15)
-    btn = tk.Button(root,fg='red', text="создать аккаунт", command=lambda: clicked(root, entries_text, text_queue))
+    text_input = tk.Entry(root, width=15)
+    btn = tk.Button(root,fg='red', text="создать аккаунт", command=lambda: clicked(root, text_input, text_queue))
 
     lbl.pack()
-    entries_text.pack()
+    text_input.pack()
     btn.pack()
 
     await update_tk(root)
@@ -71,19 +70,17 @@ async def draw(text_queue):
 
 async def main():
     load_dotenv()
-    authorized_host = os.getenv('AUTHORISE_HOST')
-    authorized_port = os.getenv('AUTHORISE_PORT')
+    authorization_host = os.getenv('AUTHORIZATION_HOST')
+    authorization_port = os.getenv('AUTHORIZATION_PORT')
 
     text_queue = asyncio.Queue()
 
-    async with get_connection(authorized_host,authorized_port) as connection:
+    async with get_connection(authorization_host,authorization_port) as connection:
         reader, writer = connection
-        async with create_task_group() as register:
-            await register.spawn(create_token, *[reader, writer, text_queue]),
-            await register.spawn(draw,text_queue),
+        async with create_task_group() as registration_tg:
+            await registration_tg.spawn(create_token, *[reader, writer, text_queue]),
+            await registration_tg.spawn(draw,text_queue),
 
 
 if __name__=='__main__':
     run(main)
-
-
