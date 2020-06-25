@@ -135,9 +135,9 @@ async def draw(messages_queue, sending_queue, status_updates_queue):
     conversation_panel = ScrolledText(root_frame, wrap='none')
     conversation_panel.pack(side="top", fill="both", expand=True)
 
-    async with create_task_group() as gui:
-        await gui.spawn(update_tk,root_frame),
-        await gui.spawn(update_conversation_history,*[conversation_panel, messages_queue]),
-        await gui.spawn(update_status_panel,*[status_labels, status_updates_queue]),
+    async with create_task_group() as gui_tg:
+        await gui_tg.spawn(update_tk,root_frame),
+        await gui_tg.spawn(update_conversation_history,*[conversation_panel, messages_queue]),
+        await gui_tg.spawn(update_status_panel,*[status_labels, status_updates_queue]),
 
 
