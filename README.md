@@ -32,9 +32,9 @@ pip3 install -r requirements.txt
 
 ### authorise.py
 
-`AUTHORISE_HOST` - хост;
+`AUTHORIZATION_HOST` - хост;
 
-`AUTHORISE_PORT` - порт;
+`AUTHORIZATION_PORT` - порт;
 
 `AUTHORISE_TOKEN` - ваш ключ авторизации на сервере;
 
