@@ -50,9 +50,9 @@ pip3 install -r requirements.txt
 
 ### authorise.py
 
-`--authorise_host` - хост;
+`--authorization_host` - хост;
 
-`--authorise_port` - порт;
+`--authorization_port` - порт;
 
 `--hash` - ваш ключ авторизации на сервере;
 
