@@ -18,11 +18,11 @@ authorization_logger = logging.getLogger('authorization')
 watchdog_logger = logging.getLogger('watchdog_logger')
 
 
-async def write_to_server(writer,text):
+async def send_to_server(writer, text):
     writer.write(f'{text}\n\n'.encode())
     await writer.drain()
 
-def restart_func(func):
+def reconnect(func):
     async def wrappers(*args, **kwargs):
         while True:
             try:
@@ -36,7 +36,7 @@ async def authorise(reader, writer, hash,
                     watchdog_queue, status_updates_queue):
     data = await reader.readline()
     authorization_logger.info(f'sender:{data}')
-    await write_to_server(writer, hash)
+    await send_to_server(writer, hash)
 
     response = await reader.readline()
     token_valid = json.loads(response)
@@ -90,7 +90,7 @@ async def send_msgs(authorization_host, authorization_port, hash,
             while True:
                 input_text = await sending_queue.get()
                 cleared_input_text = input_text.replace('\n', '')
-                await write_to_server(writer,cleared_input_text)
+                await send_to_server(writer, cleared_input_text)
 
                 await reader.readline()
                 watchdog_queue.put_nowait('Message sent')
@@ -108,7 +108,7 @@ async def watch_for_connection(queue):
             raise (ConnectionError,asyncio.TimeoutError)
 
 
-@restart_func
+@reconnect
 async def handle_connection(chat_host,chat_port,
                             messages_queue, sending_queue, status_updates_queue,
                             authorization_host, authorization_port, hash,
