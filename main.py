@@ -24,8 +24,7 @@ def restart_func(func):
             try:
                 await func(*args,**kwargs)
             except (asyncio.TimeoutError,socket.gaierror):
-                print('start reconnect')
-            await asyncio.sleep(1)
+                await asyncio.sleep(1)
     return wrappers
 
 
@@ -76,7 +75,7 @@ async def read_msgs(chat_host, chat_port, messages_queue,
         raise
 
 
-async def read_messages_file(filepath, queue): #FIXME
+async def read_messages_file(filepath, queue):
     if os.path.exists(filepath):
         while True:
             async with aiofiles.open(filepath,mode='r') as chat_messages_file:
@@ -85,31 +84,31 @@ async def read_messages_file(filepath, queue): #FIXME
 
 
 async def send_msgs(authorization_host, authorization_port, hash,
-                    sending_queue, watchdog_queue, status_updates_queue):
+                    sending_queue, watchdog_queue, status_updates_queue): #FIXME
+    #TODO добавить try finally;
+
     async with get_connection(authorization_host,authorization_port) as connection:
         reader, writer = connection
         await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
         while True:
             input_text = await sending_queue.get()
-            watchdog_queue.put_nowait('Message sent')
             cleared_input_text = input_text.replace('\n', '')
             writer.write(f'{cleared_input_text}\n\n'.encode())
             await writer.drain()
 
             await reader.readline()
+            watchdog_queue.put_nowait('Message sent')
 
 
-async def watch_for_connection(queue,status_updates_queue):
-    try:
-        while True:
-            async with timeout(5) as cm:
-                info_log = await queue.get()
-                print(f'[{time.time()}] {info_log}')
-            if cm.expired:
-                status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
-                print(f'[{time.time()}] 1s timeout is elapsed')
-    except ConnectionError:
-        raise
+async def watch_for_connection(queue):
+    while True:
+        async with timeout(5) as cm:
+            info_log = await queue.get()
+            print(f'[{time.time()}] {info_log}')
+        if cm.expired:
+            print(f'[{time.time()}] 1s timeout is elapsed')
+            raise (ConnectionError,asyncio.TimeoutError)
+
 
 
 @restart_func
@@ -119,14 +118,14 @@ async def handle_connection(chat_host,chat_port,
                             ):
 
     watchdog_queue = asyncio.Queue()
-
+    print('start reconnect')
     async with create_task_group() as connection_tg:
         await connection_tg.spawn(read_msgs,
                                 chat_host, chat_port, messages_queue,
                                 status_updates_queue, watchdog_queue),
         await connection_tg.spawn(send_msgs,authorization_host,authorization_port,hash,
                                           sending_queue, watchdog_queue, status_updates_queue),
-        await connection_tg.spawn(watch_for_connection,watchdog_queue,status_updates_queue),
+        await connection_tg.spawn(watch_for_connection,watchdog_queue),
 
 
 async def main():
