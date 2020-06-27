@@ -32,11 +32,8 @@ async def authorise(reader, writer, hash,
                     watchdog_queue, status_updates_queue):
     data = await reader.readline()
     authorization_logger.info(f'sender:{data}')
-    writer.write(f'{hash}\n'.encode())
-    await writer.drain()
+    await write_to_server(writer, hash)
 
-    writer.write('\n'.encode())
-    await writer.drain()
     response = await reader.readline()
     token_valid = json.loads(response)
     if token_valid:
@@ -53,8 +50,8 @@ async def authorise(reader, writer, hash,
 
 async def read_msgs(chat_host, chat_port, messages_queue,
                     status_updates_queue, watchdog_queue):
-    status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     try:
+        status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
         async with get_connection(chat_host, chat_port) as connection:
             reader, writer = connection
             status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
@@ -66,7 +63,7 @@ async def read_msgs(chat_host, chat_port, messages_queue,
                     messages_queue.put_nowait(message_text)
                     await chat_messages_file.write(message_text)
                     watchdog_queue.put_nowait('New message in chat')
-    except BaseException:
+    finally:
         status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
         raise
 
@@ -80,25 +77,23 @@ async def read_messages_file(filepath, queue):
 
 
 async def send_msgs(authorization_host, authorization_port, hash,
-                    sending_queue, watchdog_queue, status_updates_queue): #FIXME
-    #TODO добавить try finally;
+                    sending_queue, watchdog_queue, status_updates_queue):
     try:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
         async with get_connection(authorization_host,authorization_port) as connection:
-            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
             reader, writer = connection
             await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
             status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
             while True:
                 input_text = await sending_queue.get()
                 cleared_input_text = input_text.replace('\n', '')
-                writer.write(f'{cleared_input_text}\n\n'.encode())
-                await writer.drain()
+                await write_to_server(writer,cleared_input_text)
 
                 await reader.readline()
                 watchdog_queue.put_nowait('Message sent')
     finally:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-
+        raise
 
 async def watch_for_connection(queue):
     while True:
@@ -108,6 +103,10 @@ async def watch_for_connection(queue):
         if cm.expired:
             print(f'[{time.time()}] 1s timeout is elapsed')
             raise (ConnectionError,asyncio.TimeoutError)
+
+async def write_to_server(writer,text):
+    writer.write(f'{text}\n\n'.encode())
+    await writer.drain()
 
 
 
