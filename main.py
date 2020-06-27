@@ -30,29 +30,25 @@ def restart_func(func):
 
 async def authorise(reader, writer, hash,
                     watchdog_queue, status_updates_queue):
-    status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
-    try:
-        data = await reader.readline()
-        authorization_logger.info(f'sender:{data}')
-        writer.write(f'{hash}\n'.encode())
-        await writer.drain()
+    data = await reader.readline()
+    authorization_logger.info(f'sender:{data}')
+    writer.write(f'{hash}\n'.encode())
+    await writer.drain()
 
-        writer.write('\n'.encode())
-        await writer.drain()
-        response = await reader.readline()
-        token_valid = json.loads(response)
-        if token_valid:
-            watchdog_queue.put_nowait('Prompt before auth')
-            nickname = json.loads(response)['nickname']
-            nickname_received = gui.NicknameReceived(nickname)
-            status_updates_queue.put_nowait(nickname_received)
-            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
-            watchdog_queue.put_nowait('Authorization done')
-        else:
-            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-            raise gui.InvalidToken
-    except ConnectionError:
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+    writer.write('\n'.encode())
+    await writer.drain()
+    response = await reader.readline()
+    token_valid = json.loads(response)
+    if token_valid:
+        watchdog_queue.put_nowait('Prompt before auth')
+        nickname = json.loads(response)['nickname']
+        nickname_received = gui.NicknameReceived(nickname)
+        status_updates_queue.put_nowait(nickname_received)
+
+        watchdog_queue.put_nowait('Authorization done')
+    else:
+        raise gui.InvalidToken
+
 
 
 async def read_msgs(chat_host, chat_port, messages_queue,
@@ -86,18 +82,22 @@ async def read_messages_file(filepath, queue):
 async def send_msgs(authorization_host, authorization_port, hash,
                     sending_queue, watchdog_queue, status_updates_queue): #FIXME
     #TODO добавить try finally;
+    try:
+        async with get_connection(authorization_host,authorization_port) as connection:
+            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
+            reader, writer = connection
+            await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
+            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+            while True:
+                input_text = await sending_queue.get()
+                cleared_input_text = input_text.replace('\n', '')
+                writer.write(f'{cleared_input_text}\n\n'.encode())
+                await writer.drain()
 
-    async with get_connection(authorization_host,authorization_port) as connection:
-        reader, writer = connection
-        await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
-        while True:
-            input_text = await sending_queue.get()
-            cleared_input_text = input_text.replace('\n', '')
-            writer.write(f'{cleared_input_text}\n\n'.encode())
-            await writer.drain()
-
-            await reader.readline()
-            watchdog_queue.put_nowait('Message sent')
+                await reader.readline()
+                watchdog_queue.put_nowait('Message sent')
+    finally:
+        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
 
 
 async def watch_for_connection(queue):
