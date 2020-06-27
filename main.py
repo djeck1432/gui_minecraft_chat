@@ -18,6 +18,10 @@ authorization_logger = logging.getLogger('authorization')
 watchdog_logger = logging.getLogger('watchdog_logger')
 
 
+async def write_to_server(writer,text):
+    writer.write(f'{text}\n\n'.encode())
+    await writer.drain()
+
 def restart_func(func):
     async def wrappers(*args, **kwargs):
         while True:
@@ -37,7 +41,6 @@ async def authorise(reader, writer, hash,
     response = await reader.readline()
     token_valid = json.loads(response)
     if token_valid:
-        watchdog_queue.put_nowait('Prompt before auth')
         nickname = json.loads(response)['nickname']
         nickname_received = gui.NicknameReceived(nickname)
         status_updates_queue.put_nowait(nickname_received)
@@ -103,11 +106,6 @@ async def watch_for_connection(queue):
         if cm.expired:
             print(f'[{time.time()}] 1s timeout is elapsed')
             raise (ConnectionError,asyncio.TimeoutError)
-
-async def write_to_server(writer,text):
-    writer.write(f'{text}\n\n'.encode())
-    await writer.drain()
-
 
 
 @restart_func
