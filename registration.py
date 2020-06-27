@@ -6,6 +6,7 @@ from anyio import create_task_group, run
 import json
 from connection import get_connection
 
+
 class TkAppClosed(Exception):
     pass
 
@@ -78,7 +79,7 @@ async def main():
     async with get_connection(authorization_host,authorization_port) as connection:
         reader, writer = connection
         async with create_task_group() as registration_tg:
-            await registration_tg.spawn(create_token, *[reader, writer, text_queue]),
+            await registration_tg.spawn(create_token, reader, writer, text_queue),
             await registration_tg.spawn(draw,text_queue),
 
 
