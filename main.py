@@ -19,7 +19,10 @@ watchdog_logger = logging.getLogger('watchdog_logger')
 
 
 async def send_to_server(writer, text):
-    writer.write(f'{text}\n\n'.encode())
+    writer.write(f'{text}\n'.encode())
+    await writer.drain()
+
+    writer.write('\n'.encode())
     await writer.drain()
 
 def reconnect(func):
