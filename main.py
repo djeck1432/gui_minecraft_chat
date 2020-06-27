@@ -1,5 +1,4 @@
 import socket
-
 import aiofiles
 import logging
 import gui
@@ -21,7 +20,6 @@ watchdog_logger = logging.getLogger('watchdog_logger')
 
 def restart_func(func):
     async def wrappers(*args, **kwargs):
-
         while True:
             try:
                 await func(*args,**kwargs)
