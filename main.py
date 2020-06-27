@@ -15,7 +15,7 @@ from connection import get_connection
 import tkinter
 
 
-authorise_logger = logging.getLogger('authorise')
+authorization_logger = logging.getLogger('authorization')
 watchdog_logger = logging.getLogger('watchdog_logger')
 
 
@@ -34,27 +34,28 @@ def restart_func(func):
 async def authorise(reader, writer, hash,
                     watchdog_queue, status_updates_queue):
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
-    watchdog_queue.put_nowait('Prompt before auth')
+    try:
+        data = await reader.readline()
+        authorization_logger.info(f'sender:{data}')
+        writer.write(f'{hash}\n'.encode())
+        await writer.drain()
 
-    data = await reader.readline()
-    authorise_logger.info(f'sender:{data}')
-    writer.write(f'{hash}\n'.encode())
-    await writer.drain()
-
-    writer.write('\n'.encode())
-    await writer.drain()
-    response = await reader.readline()
-    token_valid = json.loads(response)
-    if token_valid:
-        nickname = json.loads(response)['nickname']
-        print(f'Выполнена авторизация. Пользователь {nickname}.')
-        nickname_received = gui.NicknameReceived(nickname)
-        status_updates_queue.put_nowait(nickname_received)
-        status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
-        watchdog_queue.put_nowait('Authorization done')
-    else:
+        writer.write('\n'.encode())
+        await writer.drain()
+        response = await reader.readline()
+        token_valid = json.loads(response)
+        if token_valid:
+            watchdog_queue.put_nowait('Prompt before auth')
+            nickname = json.loads(response)['nickname']
+            nickname_received = gui.NicknameReceived(nickname)
+            status_updates_queue.put_nowait(nickname_received)
+            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+            watchdog_queue.put_nowait('Authorization done')
+        else:
+            status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
+            raise gui.InvalidToken
+    except ConnectionError:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-        raise gui.InvalidToken
 
 
 async def read_msgs(chat_host, chat_port, messages_queue,
@@ -65,28 +66,29 @@ async def read_msgs(chat_host, chat_port, messages_queue,
             reader, writer = connection
             status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
             while True:
-                async with aiofiles.open('chat_messages.txt', mode='a') as chat_messages:
+                async with aiofiles.open('chat_messages.txt', mode='a') as chat_messages_file:
                     data = await reader.readline()
                     message_datetime = datetime.datetime.now().strftime('%d.%m.%y %H:%M')
                     message_text = f'[{message_datetime}] {data.decode("utf-8")}'
                     messages_queue.put_nowait(message_text)
-                    await chat_messages.write(message_text)
+                    await chat_messages_file.write(message_text)
                     watchdog_queue.put_nowait('New message in chat')
     except BaseException:
         status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
         raise
 
 
-async def save_messages(filepath,queue):
-    while True:
-        async with aiofiles.open(filepath,mode='r') as chat_messages:
-            message_text = await chat_messages.read()
-            queue.put_nowait(message_text)
+async def read_messages_file(filepath, queue): #FIXME
+    if os.path.exists(filepath):
+        while True:
+            async with aiofiles.open(filepath,mode='r') as chat_messages_file:
+                message_text = await chat_messages_file.read()
+                queue.put_nowait(message_text)
 
 
-async def send_msgs(authorise_host, authorise_port, hash,
+async def send_msgs(authorization_host, authorization_port, hash,
                     sending_queue, watchdog_queue, status_updates_queue):
-    async with get_connection(authorise_host,authorise_port) as connection:
+    async with get_connection(authorization_host,authorization_port) as connection:
         reader, writer = connection
         await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
         while True:
@@ -115,18 +117,18 @@ async def watch_for_connection(queue,status_updates_queue):
 @restart_func
 async def handle_connection(chat_host,chat_port,
                             messages_queue, sending_queue, status_updates_queue,
-                            authorise_host, authorise_port, hash,
+                            authorization_host, authorization_port, hash,
                             ):
 
     watchdog_queue = asyncio.Queue()
 
     async with create_task_group() as connection_tg:
         await connection_tg.spawn(read_msgs,
-                             *[chat_host, chat_port, messages_queue,
-                               status_updates_queue, watchdog_queue]),
-        await connection_tg.spawn(send_msgs, *[authorise_host,authorise_port,hash,
-                                          sending_queue, watchdog_queue, status_updates_queue]),
-        await connection_tg.spawn(watch_for_connection, *[watchdog_queue,status_updates_queue]),
+                                chat_host, chat_port, messages_queue,
+                                status_updates_queue, watchdog_queue),
+        await connection_tg.spawn(send_msgs,authorization_host,authorization_port,hash,
+                                          sending_queue, watchdog_queue, status_updates_queue),
+        await connection_tg.spawn(watch_for_connection,watchdog_queue,status_updates_queue),
 
 
 async def main():
@@ -144,8 +146,8 @@ async def main():
     authorization_port = os.getenv('AUTHORIZATION_PORT')
     hash = os.getenv('AUTHORISE_TOKEN')
 
-    parser.add_argument('--authorise_host', help='Host', default=authorization_host)
-    parser.add_argument('--authorise_port', help='Port', default=authorization_port)
+    parser.add_argument('--authorization_host', help='Host', default=authorization_host)
+    parser.add_argument('--authorization_port', help='Port', default=authorization_port)
     parser.add_argument('--hash', help='enter your hash', default=hash)
     parser.add_argument('--log_path', help='enter path to log file', default='authorise.logs')
     args = parser.parse_args()
@@ -159,8 +161,8 @@ async def main():
     async with create_task_group() as chat_tg:
         await chat_tg.spawn(handle_connection,args.chat_host,args.chat_port,
                                              messages_queue, sending_queue, status_updates_queue,
-                                            args.authorise_host, args.authorise_port, args.hash,)
-        await chat_tg.spawn(save_messages,args.history, messages_queue)
+                                             args.authorization_host, args.authorization_port, args.hash,)
+        await chat_tg.spawn(read_messages_file, args.history, messages_queue)
         await chat_tg.spawn(gui.draw, messages_queue,sending_queue,status_updates_queue)
 
 
