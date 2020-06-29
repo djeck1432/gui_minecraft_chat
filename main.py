@@ -22,9 +22,7 @@ async def send_to_server(writer, text):
     cleared_input_text = text.replace('\n', ' ')
     writer.write(f'{cleared_input_text}\n\n'.encode())
     await writer.drain()
-    #
-    # writer.write('\n'.encode())
-    # await writer.drain()
+
 
 def reconnect(func):
     async def wrappers(*args, **kwargs):
@@ -102,7 +100,7 @@ async def send_msgs(authorization_host, authorization_port, hash,
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
 
 
-async def watch_for_connection(queue): #FIXME
+async def watch_for_connection(queue):
     while True:
         async with timeout(1) as cm:
             info_log = await queue.get()
