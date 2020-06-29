@@ -19,11 +19,12 @@ watchdog_logger = logging.getLogger('watchdog_logger')
 
 
 async def send_to_server(writer, text):
-    writer.write(f'{text}\n'.encode())
+    cleared_input_text = text.replace('\n', ' ')
+    writer.write(f'{cleared_input_text}\n\n'.encode())
     await writer.drain()
-
-    writer.write('\n'.encode())
-    await writer.drain()
+    #
+    # writer.write('\n'.encode())
+    # await writer.drain()
 
 def reconnect(func):
     async def wrappers(*args, **kwargs):
@@ -71,7 +72,7 @@ async def read_msgs(chat_host, chat_port, messages_queue,
                     watchdog_queue.put_nowait('New message in chat')
     finally:
         status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.CLOSED)
-        raise
+
 
 
 async def read_messages_file(filepath, queue):
@@ -91,24 +92,23 @@ async def send_msgs(authorization_host, authorization_port, hash,
             await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
             status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
             while True:
-                input_text = await sending_queue.get()
-                cleared_input_text = input_text.replace('\n', '')
-                await send_to_server(writer, cleared_input_text)
-
                 await reader.readline()
+
+                input_text = await sending_queue.get()
+                await send_to_server(writer, input_text)
+
                 watchdog_queue.put_nowait('Message sent')
     finally:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
-        raise
 
-async def watch_for_connection(queue):
+
+async def watch_for_connection(queue): #FIXME
     while True:
-        async with timeout(5) as cm:
+        async with timeout(1) as cm:
             info_log = await queue.get()
             print(f'[{time.time()}] {info_log}')
-        if cm.expired:
-            print(f'[{time.time()}] 1s timeout is elapsed')
-            raise (ConnectionError,asyncio.TimeoutError)
+
+        print(f'[{time.time()}] 1s timeout is elapsed')
 
 
 @reconnect
