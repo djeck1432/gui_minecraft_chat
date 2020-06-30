@@ -29,7 +29,7 @@ def reconnect(func):
         while True:
             try:
                 await func(*args,**kwargs)
-            except (asyncio.TimeoutError,socket.gaierror):
+            except (ConnectionError,socket.gaierror):
                 await asyncio.sleep(1)
     return wrappers
 
@@ -89,12 +89,17 @@ async def send_msgs(authorization_host, authorization_port, hash,
             reader, writer = connection
             await authorise(reader, writer, hash, watchdog_queue, status_updates_queue)
             status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.ESTABLISHED)
+
             while True:
-                await reader.readline()
+                try:
+                    await reader.readline()
+                    async with timeout(5) as cm:
+                        input_text = await sending_queue.get()
 
-                input_text = await sending_queue.get()
+                except asyncio.TimeoutError:
+                    input_text = ''
+
                 await send_to_server(writer, input_text)
-
                 watchdog_queue.put_nowait('Message sent')
     finally:
         status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.CLOSED)
@@ -102,11 +107,15 @@ async def send_msgs(authorization_host, authorization_port, hash,
 
 async def watch_for_connection(queue):
     while True:
-        async with timeout(1) as cm:
-            info_log = await queue.get()
-            print(f'[{time.time()}] {info_log}')
+        try:
+            async with timeout(5) as cm:
+                info_log = await queue.get()
+                print(f'[{time.time()}] {info_log}')
 
-        print(f'[{time.time()}] 1s timeout is elapsed')
+        except asyncio.TimeoutError:
+            print(f'[{time.time()}] 5s timeout is elapsed')
+            raise ConnectionError
+
 
 
 @reconnect
