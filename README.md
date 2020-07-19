@@ -2,6 +2,9 @@
 
 You can find new cheat codes, and you might have to connect underground chat and chat with other players.
 
+
+![](example.png)
+
 # How to install
 
 Download the repository:
