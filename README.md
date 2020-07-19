@@ -1,6 +1,6 @@
 # Underground chat Minecraft
 
-Here, you can find new cheat codes and you have might to connect undeground chat and chating with other players.
+You can find new cheat codes, and you might have to connect underground chat and chat with other players.
 
 # How to install
 
@@ -18,7 +18,8 @@ pip3 install -r requirements.txt
 ```
 
 # Setting up the environment:
-Setting up the enviromnet you can with through enviroment variables or through `cli`
+
+Setting up the environment you can with through environment variables or `cli`
 
 ## Enviroment variables:
 
@@ -28,7 +29,7 @@ Setting up the enviromnet you can with through enviroment variables or through `
 
 `CHAT_PORT` - port;
 
-`HISTORY` - path to file, where will be save history of chat;
+`HISTORY` - path to the file, where will save a history of the chat;
 
 
 ### authorise.py
@@ -48,7 +49,7 @@ Setting up the enviromnet you can with through enviroment variables or through `
 
 `--chat_port` - port;
 
-`--history` - path to file, where will be save history of chat;
+`--history` - path to the file, where will save a history of the chat;
 
 ### authorise.py
 
@@ -61,7 +62,8 @@ Setting up the enviromnet you can with through enviroment variables or through `
 `--log_path` - path to logs file;
 
 
-# How run the code
+# How to run the code
+
 ```bash
 python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path to file] --log_path [name].logs
 ``` 
@@ -74,9 +76,4 @@ python3 registration.py
 ```
 Enter your `nickname` and push the button <i>create account<i>
 
-After that, you can see file `account_data.txt`, where will be your nickname` and `hash`
-
-
-
-
-
+After that, you can see file `account_data.txt`, where will be your `nickname` and `hash`
