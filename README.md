@@ -1,77 +1,81 @@
-# Подпольный чат Minecraft
+# Underground chat Minecraft
 
-С помощью данного чата, вы сможете узнать новые читы, а также подключиться к подпольному чату и общаться с другими игроками.
+Here, you can find new cheat codes and you have might to connect undeground chat and chating with other players.
 
-# Как установить
+# How to install
 
-Скачать репозиторий:
+Download the repository:
 ```bash
 git clone https://github.com/djeck1432/connect_to_chat
 ```
-Откройте папку в терминале:
+Open the folder in the terminal:
 ```bash
 cd connect_to_chat
 ```
-Установите необходимые библиотеки:
+Install requirements libraries and packages:
 ```bash
 pip3 install -r requirements.txt
 ```
 
-# Настройка окружения:
-Настроить окружения вы можете с помощью переменных окружения или с помощью 'cli'.
+# Setting up the environment:
+Setting up the enviromnet you can with through enviroment variables or through `cli`
 
-## Переменные окружения:
-
-### listen_minechat.py
-
-`CHAT_HOST` - хост;
-
-`CHAT_PORT` - порт;
-
-`HISTORY` - путь к файлу, где будет сохраняться история чата;
-
-### authorise.py
-
-`AUTHORIZATION_HOST` - хост;
-
-`AUTHORIZATION_PORT` - порт;
-
-`AUTHORISE_TOKEN` - ваш ключ авторизации на сервере;
-
-## Настройка окружения с помощью `cli`:
+## Enviroment variables:
 
 ### listen_minechat.py
 
-`--chat_host` - хост;
+`CHAT_HOST` - host;
 
-`--chat_port` - порт;
+`CHAT_PORT` - port;
 
-`--history` - путь к файлу, где будет сохраняться история чата;
+`HISTORY` - path to file, where will be save history of chat;
+
 
 ### authorise.py
 
-`--authorization_host` - хост;
+`AUTHORIZATION_HOST` - host;
 
-`--authorization_port` - порт;
+`AUTHORIZATION_PORT` - port;
 
-`--hash` - ваш ключ авторизации на сервере;
+`AUTHORISE_TOKEN` - your authorisation key for server;
 
-`--log_path` - путь к лог файлам.
 
-# Пример запуска скрипта
+## Setting up with `cli`:
+
+### listen_minechat.py
+
+`--chat_host` - host;
+
+`--chat_port` - port;
+
+`--history` - path to file, where will be save history of chat;
+
+### authorise.py
+
+`--authorization_host` - host;
+
+`--authorization_port` - port;
+
+`--hash` - your authorisation key for server;
+
+`--log_path` - path to logs file;
+
+
+# How run the code
 ```bash
 python3 listen_minechat.py --chat_host [host] --chat_port [port] --history [path to file] --log_path [name].logs
 ``` 
  
-# Как создать новый акк
+# How to create new account
 
-В консоли, откройте следующий файл: 
+In terminal open the next file:
 ```bash 
 python3 registration.py
 ```
-Введите свой nickname  и нажмите кнопку <i>создать аккаунт<i>.
+Enter your `nickname` and push the button <i>create account<i>
 
-После, у вас появиться файл `account_data.txt`, где будет указан ваш `nickname` и `hash`.
+After that, you can see file `account_data.txt`, where will be your nickname` and `hash`
+
 
 
 
